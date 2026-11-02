@@ -105,8 +105,8 @@ function remove(): void {
     <div>Заметка не найдена</div>
   </div>
 
-  <div v-else class="flex flex-col gap-3 p-3">
-    <div class="flex justify-end gap-2">
+  <div v-else class="flex flex-col">
+    <div class="flex justify-end gap-2 border-b border-secondary p-3">
       <template v-if="isEditing">
         <UiButton
           label="Отменить редактирование"
@@ -129,11 +129,13 @@ function remove(): void {
       <UiButton v-if="!isNew" label="Удалить" color="error" @click="remove" />
     </div>
 
-    <NoteEdit
-      v-if="isEditing"
-      v-model="note"
-      v-model:title-error="titleError"
-    />
-    <NoteView v-else :note="note" />
+    <div class="p-5">
+      <NoteEdit
+        v-if="isEditing"
+        v-model="note"
+        v-model:title-error="titleError"
+      />
+      <NoteView v-else :note="note" />
+    </div>
   </div>
 </template>

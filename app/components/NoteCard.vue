@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { Note } from "~/models/note";
 
+const route = useRoute();
+
 defineProps<{
   note: Note;
 }>();
@@ -9,7 +11,8 @@ defineProps<{
 <template>
   <NuxtLink
     :to="`/${note.id}`"
-    class="block cursor-pointer border-b border-secondary p-3"
+    class="block cursor-pointer border-b border-secondary hover:bg-secondary/45 p-3"
+    :class="{ 'bg-secondary/60!': route.params.id === note.id }"
   >
     <div class="font-semibold">{{ note.title || "Без названия" }}</div>
     <div class="flex flex-col">

@@ -7,14 +7,20 @@ defineProps<{
 }>();
 
 const colorClasses: Record<ButtonColor, string> = {
-  primary: "bg-primary text-white",
-  secondary: "bg-secondary text-black",
-  error: "bg-red-500 text-white",
+  primary: "bg-primary hover:bg-primary/80 text-white",
+  secondary: "bg-secondary hover:bg-secondary/80 text-black",
+  error: "bg-red-500 hover:bg-red-500/80 text-white",
 };
 </script>
 
 <template>
-  <button type="button" :class="['rounded-md px-4 py-2', colorClasses[color]]">
+  <button
+    type="button"
+    :class="[
+      'rounded-md px-3 py-1.5 text-sm cursor-pointer',
+      colorClasses[color],
+    ]"
+  >
     {{ label }}
   </button>
 </template>
