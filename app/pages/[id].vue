@@ -16,10 +16,22 @@ const note = ref<Note>({
   title: "",
   checklist: [],
 });
+const titleError = ref(false);
+
+watch(
+  () => note.value.title,
+  (title) => {
+    if (title.trim()) {
+      titleError.value = false;
+    }
+  },
+);
 
 watch(
   () => route.params.id,
   (id) => {
+    titleError.value = false;
+
     if (id === "new") {
       note.value = { id: "", title: "", checklist: [] };
       return;
@@ -40,6 +52,11 @@ watch(
 );
 
 function save(): void {
+  if (!note.value.title.trim()) {
+    titleError.value = true;
+    return;
+  }
+
   if (isNew.value) {
     notesStore.createNote({
       title: note.value.title,
@@ -80,6 +97,9 @@ function removeChecklistItem(id: string): void {
     <div class="flex flex-col gap-1">
       <label for="note-title">Название</label>
       <UiInput id="note-title" v-model="note.title" />
+      <p v-if="titleError" class="text-red-500 text-sm">
+        Поле обязательно к заполнению
+      </p>
     </div>
 
     <div class="flex flex-col gap-1">
