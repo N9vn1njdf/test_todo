@@ -13,7 +13,11 @@ defineProps<{
   >
     <div class="font-semibold">{{ note.title || "Без названия" }}</div>
     <div class="flex flex-col">
-      <div v-for="item in note.checklist" :key="item.id" class="flex gap-2">
+      <div
+        v-for="item in note.checklist.slice(0, 3)"
+        :key="item.id"
+        class="flex gap-2"
+      >
         <UiCheckbox :model-value="item.completed" disabled />
         <span class="text-sm">{{ item.title }}</span>
       </div>
