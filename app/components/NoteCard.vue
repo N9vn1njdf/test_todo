@@ -1,13 +1,19 @@
-<script lang="ts" setup></script>
+<script setup lang="ts">
+import type { Note } from "~/models/note";
+
+defineProps<{
+	note: Note;
+}>();
+</script>
 
 <template>
-	<div class="border-b border-secondary p-3 cursor-pointer">
-		<div class="font-semibold">Title</div>
+	<NuxtLink :to="`/${note.id}`" class="block cursor-pointer border-b border-secondary p-3">
+		<div class="font-semibold">{{ note.title || "Без названия" }}</div>
 		<div class="flex flex-col">
-			<div class="flex gap-2" v-for="i in 3">
-				<UiCheckbox disabled />
-				<span class="text-sm">todo item</span>
+			<div v-for="item in note.checklist" :key="item.id" class="flex gap-2">
+				<UiCheckbox :model-value="item.completed" disabled />
+				<span class="text-sm">{{ item.title }}</span>
 			</div>
 		</div>
-	</div>
+	</NuxtLink>
 </template>

@@ -1,7 +1,14 @@
+<script setup lang="ts">
+const notesStore = useNotesStore();
+</script>
+
 <template>
 	<div class="flex h-full">
-		<div class="w-70 h-full overflow-scroll border-r border-secondary">
-			<NoteCard v-for="i in 10" />
+		<div class="flex h-full w-70 flex-col overflow-scroll border-r border-secondary">
+			<NuxtLink to="/new" class="m-3 rounded-md bg-primary px-3 py-2 text-center text-white">
+				Создать
+			</NuxtLink>
+			<NoteCard v-for="note in notesStore.notes" :key="note.id" :note="note" />
 		</div>
 		<div class="flex-1">
 			<slot />
