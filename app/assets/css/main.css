@@ -2,4 +2,5 @@
 
 @theme {
 	--color-primary: var(--color-cyan-500);
+	--color-secondary: var(--color-gray-200);
 }
