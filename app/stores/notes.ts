@@ -2,6 +2,17 @@ import { createId } from "@paralleldrive/cuid2";
 import { defineStore } from "pinia";
 import type { Note } from "~/models/note";
 
+function normalizeNote(
+  note: Pick<Note, "title" | "checklist">,
+): Pick<Note, "title" | "checklist"> {
+  return {
+    title: note.title.trim(),
+    checklist: note.checklist
+      .map((item) => ({ ...item, title: item.title.trim() }))
+      .filter((item) => item.title.length > 0),
+  };
+}
+
 function cloneNote(note: Note): Note {
   return {
     ...note,
@@ -14,7 +25,6 @@ function createMockNotes(): Note[] {
     {
       id: createId(),
       title: "Планы на неделю",
-      text: "Основные задачи на эту неделю.",
       checklist: [
         { id: createId(), title: "Купить продукты", completed: true },
         { id: createId(), title: "Записаться к врачу", completed: false },
@@ -23,7 +33,6 @@ function createMockNotes(): Note[] {
     {
       id: createId(),
       title: "Идеи для проекта",
-      text: "Заметки и идеи, которые стоит обсудить.",
       checklist: [
         { id: createId(), title: "Продумать интерфейс", completed: false },
         { id: createId(), title: "Составить список функций", completed: false },
@@ -38,10 +47,11 @@ export const useNotesStore = defineStore("notes", {
   }),
   actions: {
     createNote(note: Omit<Note, "id">): Note {
+      const normalizedNote = normalizeNote(note);
       const newNote: Note = {
-        ...note,
+        ...normalizedNote,
         id: createId(),
-        checklist: note.checklist.map((item) => ({
+        checklist: normalizedNote.checklist.map((item) => ({
           ...item,
           id: createId(),
         })),
@@ -52,7 +62,9 @@ export const useNotesStore = defineStore("notes", {
     },
     saveNote(note: Note): void {
       const noteIndex = this.notes.findIndex((item) => item.id === note.id);
-      if (noteIndex !== -1) this.notes[noteIndex] = cloneNote(note);
+      if (noteIndex !== -1) {
+        this.notes[noteIndex] = cloneNote({ ...note, ...normalizeNote(note) });
+      }
     },
     deleteNote(id: string): void {
       this.notes = this.notes.filter((note) => note.id !== id);
