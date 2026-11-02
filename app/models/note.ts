@@ -7,6 +7,5 @@ export interface ChecklistItem {
 export interface Note {
   id: string;
   title: string;
-  text: string;
   checklist: ChecklistItem[];
 }

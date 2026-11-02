@@ -14,7 +14,6 @@ const noteNotFound = computed(
 const note = ref<Note>({
   id: "",
   title: "",
-  text: "",
   checklist: [],
 });
 
@@ -22,13 +21,13 @@ watch(
   () => route.params.id,
   (id) => {
     if (id === "new") {
-      note.value = { id: "", title: "", text: "", checklist: [] };
+      note.value = { id: "", title: "", checklist: [] };
       return;
     }
 
     const existingNote = notesStore.notes.find((item) => item.id === id);
     if (!existingNote) {
-      note.value = { id: "", title: "", text: "", checklist: [] };
+      note.value = { id: "", title: "", checklist: [] };
       return;
     }
 
@@ -42,16 +41,16 @@ watch(
 
 function save(): void {
   if (isNew.value) {
-    const createdNote = notesStore.createNote({
+    notesStore.createNote({
       title: note.value.title,
-      text: note.value.text,
       checklist: note.value.checklist,
     });
-    void router.push(`/${createdNote.id}`);
+    void router.push("/");
     return;
   }
 
   notesStore.saveNote(note.value);
+  void router.push("/");
 }
 
 function remove(): void {
@@ -81,10 +80,6 @@ function removeChecklistItem(id: string): void {
     <div class="flex flex-col gap-1">
       <label for="note-title">Название</label>
       <UiInput id="note-title" v-model="note.title" />
-    </div>
-    <div class="flex flex-col gap-1">
-      <label for="note-description">Описание</label>
-      <UiTextarea id="note-description" v-model="note.text" />
     </div>
 
     <div class="flex flex-col gap-1">
