@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { createId } from "@paralleldrive/cuid2";
+import NoteEdit from "~/components/note/Edit.vue";
+import NoteView from "~/components/note/View.vue";
 import type { Note } from "~/models/note";
 
 const route = useRoute();
 const router = useRouter();
 const notesStore = useNotesStore();
 const isNew = computed(() => route.params.id === "new");
+const isEditing = ref(isNew.value);
 const noteNotFound = computed(
   () =>
     !isNew.value &&
@@ -19,18 +21,10 @@ const note = ref<Note>({
 const titleError = ref(false);
 
 watch(
-  () => note.value.title,
-  (title) => {
-    if (title.trim()) {
-      titleError.value = false;
-    }
-  },
-);
-
-watch(
   () => route.params.id,
   (id) => {
     titleError.value = false;
+    isEditing.value = id === "new";
 
     if (id === "new") {
       note.value = { id: "", title: "", checklist: [] };
@@ -51,6 +45,13 @@ watch(
   { immediate: true },
 );
 
+function copyNote(source: Note): Note {
+  return {
+    ...source,
+    checklist: source.checklist.map((item) => ({ ...item })),
+  };
+}
+
 function save(): void {
   if (!note.value.title.trim()) {
     titleError.value = true;
@@ -58,29 +59,40 @@ function save(): void {
   }
 
   if (isNew.value) {
-    notesStore.createNote({
+    const createdNote = notesStore.createNote({
       title: note.value.title,
       checklist: note.value.checklist,
     });
-    void router.push("/");
+    void router.push(`/${createdNote.id}`);
     return;
   }
 
   notesStore.saveNote(note.value);
-  void router.push("/");
+  note.value = copyNote(note.value);
+  titleError.value = false;
+  isEditing.value = false;
+}
+
+function cancelEditing(): void {
+  titleError.value = false;
+
+  if (isNew.value) {
+    void router.push("/");
+    return;
+  }
+
+  const savedNote = notesStore.notes.find(
+    (item) => item.id === route.params.id,
+  );
+  if (savedNote) {
+    note.value = copyNote(savedNote);
+  }
+  isEditing.value = false;
 }
 
 function remove(): void {
   notesStore.deleteNote(note.value.id);
   void router.push("/");
-}
-
-function addChecklistItem(): void {
-  note.value.checklist.push({ id: createId(), title: "", completed: false });
-}
-
-function removeChecklistItem(id: string): void {
-  note.value.checklist = note.value.checklist.filter((item) => item.id !== id);
 }
 </script>
 
@@ -94,39 +106,34 @@ function removeChecklistItem(id: string): void {
   </div>
 
   <div v-else class="flex flex-col gap-3 p-3">
-    <div class="flex flex-col gap-1">
-      <label for="note-title">Название</label>
-      <UiInput id="note-title" v-model="note.title" />
-      <p v-if="titleError" class="text-red-500 text-sm">
-        Поле обязательно к заполнению
-      </p>
-    </div>
-
-    <div class="flex flex-col gap-1">
-      <div>TODO</div>
-      <NoteTotoItem
-        v-for="item in note.checklist"
-        :key="item.id"
-        v-model:title="item.title"
-        v-model:completed="item.completed"
-        @delete="removeChecklistItem(item.id)"
-      />
-      <button
-        type="button"
-        class="self-start text-sm text-primary"
-        @click="addChecklistItem"
-      >
-        Добавить пункт
-      </button>
-    </div>
-
-    <div class="mt-auto flex justify-end gap-2">
+    <div class="flex justify-end gap-2">
+      <template v-if="isEditing">
+        <UiButton
+          label="Отменить редактирование"
+          color="secondary"
+          @click="cancelEditing"
+          v-if="!isNew"
+        />
+        <UiButton
+          :label="isNew ? 'Создать' : 'Сохранить'"
+          color="primary"
+          @click="save"
+        />
+      </template>
       <UiButton
-        :label="isNew ? 'Создать' : 'Сохранить'"
+        v-else
+        label="Редактировать"
         color="primary"
-        @click="save"
+        @click="isEditing = true"
       />
       <UiButton v-if="!isNew" label="Удалить" color="error" @click="remove" />
     </div>
+
+    <NoteEdit
+      v-if="isEditing"
+      v-model="note"
+      v-model:title-error="titleError"
+    />
+    <NoteView v-else :note="note" />
   </div>
 </template>
