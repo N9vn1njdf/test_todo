@@ -57,6 +57,10 @@ function remove(): void {
 function addChecklistItem(): void {
 	note.value.checklist.push({ id: createId(), title: "", completed: false });
 }
+
+function removeChecklistItem(id: string): void {
+	note.value.checklist = note.value.checklist.filter((item) => item.id !== id);
+}
 </script>
 
 <template>
@@ -77,6 +81,7 @@ function addChecklistItem(): void {
 				:key="item.id"
 				v-model:title="item.title"
 				v-model:completed="item.completed"
+				@delete="removeChecklistItem(item.id)"
 			/>
 			<button type="button" class="self-start text-sm text-primary" @click="addChecklistItem">
 				Добавить пункт
