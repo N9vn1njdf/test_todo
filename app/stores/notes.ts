@@ -1,6 +1,13 @@
 import { createId } from "@paralleldrive/cuid2";
 import { defineStore } from "pinia";
-import type { ChecklistItem, Note } from "~/models/note";
+import type { Note } from "~/models/note";
+
+function cloneNote(note: Note): Note {
+	return {
+		...note,
+		checklist: note.checklist.map((item) => ({ ...item })),
+	};
+}
 
 function createMockNotes(): Note[] {
 	return [
@@ -34,18 +41,18 @@ export const useNotesStore = defineStore("notes", {
 			const newNote: Note = {
 				...note,
 				id: createId(),
-				checklist: note.checklist.map((item: ChecklistItem) => ({
+				checklist: note.checklist.map((item) => ({
 					...item,
 					id: createId(),
 				})),
 			};
 
-			this.notes.push(newNote);
+			this.notes.push(cloneNote(newNote));
 			return newNote;
 		},
 		saveNote(note: Note): void {
 			const noteIndex = this.notes.findIndex((item) => item.id === note.id);
-			if (noteIndex !== -1) this.notes[noteIndex] = note;
+			if (noteIndex !== -1) this.notes[noteIndex] = cloneNote(note);
 		},
 		deleteNote(id: string): void {
 			this.notes = this.notes.filter((note) => note.id !== id);
