@@ -6,6 +6,11 @@ const route = useRoute();
 const router = useRouter();
 const notesStore = useNotesStore();
 const isNew = computed(() => route.params.id === "new");
+const noteNotFound = computed(
+  () =>
+    !isNew.value &&
+    !notesStore.notes.some((item) => item.id === route.params.id),
+);
 const note = ref<Note>({
   id: "",
   title: "",
@@ -23,7 +28,7 @@ watch(
 
     const existingNote = notesStore.notes.find((item) => item.id === id);
     if (!existingNote) {
-      void router.replace("/");
+      note.value = { id: "", title: "", text: "", checklist: [] };
       return;
     }
 
@@ -64,7 +69,15 @@ function removeChecklistItem(id: string): void {
 </script>
 
 <template>
-  <div class="flex flex-col gap-3 p-3">
+  <div
+    v-if="noteNotFound"
+    class="h-full flex flex-col items-center justify-center"
+  >
+    <div class="text-3xl mb-1">404</div>
+    <div>Заметка не найдена</div>
+  </div>
+
+  <div v-else class="flex flex-col gap-3 p-3">
     <div class="flex flex-col gap-1">
       <label for="note-title">Название</label>
       <UiInput id="note-title" v-model="note.title" />
