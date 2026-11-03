@@ -9,6 +9,23 @@ const title = computed({
   set: (value: string) => editorStore.setNoteTitle(value),
 });
 
+function handleHistoryShortcut(event: KeyboardEvent): void {
+  if (
+    !(event.ctrlKey || event.metaKey) ||
+    event.altKey ||
+    event.key.toLowerCase() !== "z"
+  ) {
+    return;
+  }
+
+  event.preventDefault();
+  if (event.shiftKey) {
+    editorStore.redo();
+  } else {
+    editorStore.undo();
+  }
+}
+
 watch(
   () => editorStore.draft?.title,
   (value) => {
@@ -40,7 +57,11 @@ async function confirmRemoveChecklistItem(id: string): Promise<void> {
   <div class="flex flex-col gap-3">
     <div class="flex flex-col gap-1">
       <label for="note-title">Название</label>
-      <UiInput id="note-title" v-model="title" />
+      <UiInput
+        id="note-title"
+        v-model="title"
+        @keydown.stop="handleHistoryShortcut"
+      />
       <p v-if="titleError" class="text-red-500 text-sm">
         Поле обязательно к заполнению
       </p>

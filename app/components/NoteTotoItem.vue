@@ -2,6 +2,24 @@
 const title = defineModel<string>("title", { default: "" });
 const completed = defineModel<boolean>("completed", { default: false });
 const emit = defineEmits<{ delete: [] }>();
+const editorStore = useNoteEditorStore();
+
+function handleHistoryShortcut(event: KeyboardEvent): void {
+  if (
+    !(event.ctrlKey || event.metaKey) ||
+    event.altKey ||
+    event.key.toLowerCase() !== "z"
+  ) {
+    return;
+  }
+
+  event.preventDefault();
+  if (event.shiftKey) {
+    editorStore.redo();
+  } else {
+    editorStore.undo();
+  }
+}
 </script>
 
 <template>
@@ -13,6 +31,7 @@ const emit = defineEmits<{ delete: [] }>();
       class="flex-1 text-sm focus:outline-none"
       :class="{ 'line-through text-gray-400': completed }"
       aria-label="Название пункта чеклиста"
+      @keydown.stop="handleHistoryShortcut"
     />
     <button
       type="button"
