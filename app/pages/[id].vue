@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import NoteEdit from "~/components/note/Edit.vue";
 import NoteView from "~/components/note/View.vue";
+import ConfirmationModal from "~/modals/ConfirmationModal.vue";
 import type { Note } from "~/models/note";
 
 const route = useRoute();
 const router = useRouter();
 const notesStore = useNotesStore();
+const modalStore = useModalStore();
 const isNew = computed(() => route.params.id === "new");
 const isEditing = ref(isNew.value);
 const noteNotFound = computed(
@@ -90,9 +92,31 @@ function cancelEditing(): void {
   isEditing.value = false;
 }
 
+async function confirmCancelEditing(): Promise<void> {
+  const confirmed = await modalStore.open<boolean>(ConfirmationModal, {
+    text: isNew.value
+      ? "Отменить создание заметки? Введённые данные будут потеряны."
+      : "Отменить редактирование? Все несохранённые изменения будут потеряны.",
+  });
+
+  if (confirmed) {
+    cancelEditing();
+  }
+}
+
 function remove(): void {
   notesStore.deleteNote(note.value.id);
   void router.push("/");
+}
+
+async function confirmRemove(): Promise<void> {
+  const confirmed = await modalStore.open<boolean>(ConfirmationModal, {
+    text: `Удалить заметку «${note.value.title || "Без названия"}»?`,
+  });
+
+  if (confirmed) {
+    remove();
+  }
 }
 </script>
 
@@ -109,10 +133,9 @@ function remove(): void {
     <div class="flex justify-end gap-2 border-b border-secondary p-3">
       <template v-if="isEditing">
         <UiButton
-          label="Отменить редактирование"
+          :label="isNew ? 'Отменить создание' : 'Отменить редактирование'"
           color="secondary"
-          @click="cancelEditing"
-          v-if="!isNew"
+          @click="confirmCancelEditing"
         />
         <UiButton
           :label="isNew ? 'Создать' : 'Сохранить'"
@@ -126,7 +149,12 @@ function remove(): void {
         color="primary"
         @click="isEditing = true"
       />
-      <UiButton v-if="!isNew" label="Удалить" color="error" @click="remove" />
+      <UiButton
+        v-if="!isNew"
+        label="Удалить"
+        color="error"
+        @click="confirmRemove"
+      />
     </div>
 
     <div class="p-5">

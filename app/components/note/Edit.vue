@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { createId } from "@paralleldrive/cuid2";
 import type { Note } from "~/models/note";
+import ConfirmationModal from "~/modals/ConfirmationModal.vue";
 
 const note = defineModel<Note>({ required: true });
 const titleError = defineModel<boolean>("titleError", { default: false });
+const modalStore = useModalStore();
 
 watch(
   () => note.value.title,
@@ -20,6 +22,23 @@ function addChecklistItem(): void {
 
 function removeChecklistItem(id: string): void {
   note.value.checklist = note.value.checklist.filter((item) => item.id !== id);
+}
+
+async function confirmRemoveChecklistItem(id: string): Promise<void> {
+  const item = note.value.checklist.find(
+    (checklistItem) => checklistItem.id === id,
+  );
+  if (!item) {
+    return;
+  }
+
+  const confirmed = await modalStore.open<boolean>(ConfirmationModal, {
+    text: `Удалить пункт «${item.title || "Без названия"}»?`,
+  });
+
+  if (confirmed) {
+    removeChecklistItem(id);
+  }
 }
 </script>
 
@@ -40,7 +59,7 @@ function removeChecklistItem(id: string): void {
         :key="item.id"
         v-model:title="item.title"
         v-model:completed="item.completed"
-        @delete="removeChecklistItem(item.id)"
+        @delete="confirmRemoveChecklistItem(item.id)"
       />
       <button
         type="button"

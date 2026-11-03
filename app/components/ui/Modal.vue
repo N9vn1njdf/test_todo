@@ -62,7 +62,7 @@ onUnmounted(() => {
 
 <template>
   <Teleport to="body">
-    <Transition name="ui-modal" @after-leave="emit('after-leave')">
+    <Transition name="ui-modal" @after-leave="emit('after-leave')" appear>
       <div
         v-if="modelValue"
         class="fixed inset-0 z-50 flex items-center justify-center p-4"
