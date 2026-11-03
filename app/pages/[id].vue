@@ -8,6 +8,7 @@ const route = useRoute();
 const router = useRouter();
 const notesStore = useNotesStore();
 const modalStore = useModalStore();
+const editorStore = useNoteEditorStore();
 const isNew = computed(() => route.params.id === "new");
 const isEditing = ref(isNew.value);
 const noteNotFound = computed(
@@ -15,11 +16,12 @@ const noteNotFound = computed(
     !isNew.value &&
     !notesStore.notes.some((item) => item.id === route.params.id),
 );
-const note = ref<Note>({
+const emptyNote: Note = {
   id: "",
   title: "",
   checklist: [],
-});
+};
+const note = computed(() => editorStore.draft ?? emptyNote);
 const titleError = ref(false);
 
 watch(
@@ -29,48 +31,40 @@ watch(
     isEditing.value = id === "new";
 
     if (id === "new") {
-      note.value = { id: "", title: "", checklist: [] };
+      editorStore.initialize(emptyNote);
       return;
     }
 
     const existingNote = notesStore.notes.find((item) => item.id === id);
     if (!existingNote) {
-      note.value = { id: "", title: "", checklist: [] };
+      editorStore.initialize(emptyNote);
       return;
     }
 
-    note.value = {
-      ...existingNote,
-      checklist: existingNote.checklist.map((item) => ({ ...item })),
-    };
+    editorStore.initialize(existingNote);
   },
   { immediate: true },
 );
 
-function copyNote(source: Note): Note {
-  return {
-    ...source,
-    checklist: source.checklist.map((item) => ({ ...item })),
-  };
-}
-
 function save(): void {
-  if (!note.value.title.trim()) {
+  editorStore.flushPendingChanges();
+  const draft = editorStore.draft;
+  if (!draft?.title.trim()) {
     titleError.value = true;
     return;
   }
 
   if (isNew.value) {
     const createdNote = notesStore.createNote({
-      title: note.value.title,
-      checklist: note.value.checklist,
+      title: draft.title,
+      checklist: draft.checklist,
     });
     void router.push(`/${createdNote.id}`);
     return;
   }
 
-  notesStore.saveNote(note.value);
-  note.value = copyNote(note.value);
+  notesStore.saveNote(draft);
+  editorStore.initialize(draft);
   titleError.value = false;
   isEditing.value = false;
 }
@@ -79,6 +73,7 @@ function cancelEditing(): void {
   titleError.value = false;
 
   if (isNew.value) {
+    editorStore.reset();
     void router.push("/");
     return;
   }
@@ -87,7 +82,9 @@ function cancelEditing(): void {
     (item) => item.id === route.params.id,
   );
   if (savedNote) {
-    note.value = copyNote(savedNote);
+    editorStore.initialize(savedNote);
+  } else {
+    editorStore.reset();
   }
   isEditing.value = false;
 }
@@ -106,6 +103,7 @@ async function confirmCancelEditing(): Promise<void> {
 
 function remove(): void {
   notesStore.deleteNote(note.value.id);
+  editorStore.reset();
   void router.push("/");
 }
 
@@ -118,6 +116,41 @@ async function confirmRemove(): Promise<void> {
     remove();
   }
 }
+
+function handleHistoryShortcut(event: KeyboardEvent): void {
+  if (!isEditing.value || !(event.ctrlKey || event.metaKey) || event.altKey) {
+    return;
+  }
+
+  const target = event.target;
+  if (
+    target instanceof HTMLElement &&
+    (target.isContentEditable ||
+      target.closest("input, textarea, select, [contenteditable='true']"))
+  ) {
+    return;
+  }
+
+  if (event.key.toLowerCase() !== "z") {
+    return;
+  }
+
+  event.preventDefault();
+  if (event.shiftKey) {
+    editorStore.redo();
+  } else {
+    editorStore.undo();
+  }
+}
+
+onMounted(() => {
+  window.addEventListener("keydown", handleHistoryShortcut);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("keydown", handleHistoryShortcut);
+  editorStore.reset();
+});
 </script>
 
 <template>
@@ -132,6 +165,21 @@ async function confirmRemove(): Promise<void> {
   <div v-else class="flex flex-col">
     <div class="flex justify-end gap-2 border-b border-secondary p-3">
       <template v-if="isEditing">
+        <div class="flex gap-2 flex-1">
+          <UiButton
+            label="Отменить"
+            color="secondary"
+            :disabled="!editorStore.canUndo"
+            @click="editorStore.undo"
+          />
+          <UiButton
+            label="Повторить"
+            color="secondary"
+            :disabled="!editorStore.canRedo"
+            @click="editorStore.redo"
+          />
+        </div>
+
         <UiButton
           :label="isNew ? 'Отменить создание' : 'Отменить редактирование'"
           color="secondary"
@@ -158,11 +206,7 @@ async function confirmRemove(): Promise<void> {
     </div>
 
     <div class="p-5">
-      <NoteEdit
-        v-if="isEditing"
-        v-model="note"
-        v-model:title-error="titleError"
-      />
+      <NoteEdit v-if="isEditing" v-model:title-error="titleError" />
       <NoteView v-else :note="note" />
     </div>
   </div>
