@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onKeyStroke } from "@vueuse/core";
 import { onMounted, onUnmounted, watch } from "vue";
 
 const props = defineProps<{
@@ -32,14 +33,13 @@ function unlockBodyScroll(): void {
   isBodyScrollLocked = false;
 }
 
-function onKeydown(event: KeyboardEvent): void {
-  if (event.key === "Escape" && props.modelValue) {
+onKeyStroke("Escape", () => {
+  if (props.modelValue) {
     emit("update:modelValue", false);
   }
-}
+});
 
 onMounted(() => {
-  document.addEventListener("keydown", onKeydown);
   if (props.modelValue) {
     lockBodyScroll();
   }
@@ -55,7 +55,6 @@ watch(
 );
 
 onUnmounted(() => {
-  document.removeEventListener("keydown", onKeydown);
   unlockBodyScroll();
 });
 </script>

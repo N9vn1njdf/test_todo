@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onKeyStroke } from "@vueuse/core";
 import NoteEdit from "~/components/note/Edit.vue";
 import NoteView from "~/components/note/View.vue";
 import ConfirmationModal from "~/modals/ConfirmationModal.vue";
@@ -117,9 +118,9 @@ async function confirmRemove(): Promise<void> {
   }
 }
 
-function handleHistoryShortcut(event: KeyboardEvent): void {
+function isHistoryShortcut(event: KeyboardEvent): boolean {
   if (!isEditing.value || !(event.ctrlKey || event.metaKey) || event.altKey) {
-    return;
+    return false;
   }
 
   const target = event.target;
@@ -128,27 +129,22 @@ function handleHistoryShortcut(event: KeyboardEvent): void {
     (target.isContentEditable ||
       target.closest("input, textarea, select, [contenteditable='true']"))
   ) {
-    return;
+    return false;
   }
 
-  if (event.key.toLowerCase() !== "z") {
-    return;
-  }
+  return event.key.toLowerCase() === "z";
+}
 
+onKeyStroke(isHistoryShortcut, (event) => {
   event.preventDefault();
   if (event.shiftKey) {
     editorStore.redo();
   } else {
     editorStore.undo();
   }
-}
-
-onMounted(() => {
-  window.addEventListener("keydown", handleHistoryShortcut);
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener("keydown", handleHistoryShortcut);
   editorStore.reset();
 });
 </script>
