@@ -7,5 +7,6 @@
         <NuxtPage />
       </NuxtLayout>
     </div>
+    <ModalHost />
   </main>
 </template>
