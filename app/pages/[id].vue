@@ -14,8 +14,10 @@ const isNew = computed(() => route.params.id === "new");
 const isEditing = ref(isNew.value);
 const noteNotFound = computed(
   () =>
+    notesStore.initialized &&
     !isNew.value &&
-    !notesStore.notes.some((item) => item.id === route.params.id),
+    !notesStore.notes.some((item) => item.id === route.params.id) &&
+    !(isEditing.value && editorStore.draft?.id === route.params.id),
 );
 const emptyNote: Note = {
   id: "",
@@ -25,26 +27,54 @@ const emptyNote: Note = {
 const note = computed(() => editorStore.draft ?? emptyNote);
 const titleError = ref(false);
 
+function initializeRouteDraft(id: string | string[] | undefined): void {
+  if (!id) return;
+
+  const routeId = Array.isArray(id) ? id[0] : id;
+  titleError.value = false;
+  isEditing.value = routeId === "new";
+
+  if (editorStore.consumeRestoredDraft(routeId ?? "")) {
+    isEditing.value = true;
+    return;
+  }
+
+  if (editorStore.restoredDraftId !== null) {
+    return;
+  }
+
+  if (routeId === "new") {
+    editorStore.initialize(emptyNote);
+    return;
+  }
+
+  const existingNote = notesStore.notes.find((item) => item.id === routeId);
+  if (!existingNote) {
+    editorStore.initialize(emptyNote);
+    return;
+  }
+
+  editorStore.initialize(existingNote);
+}
+
 watch(
   () => route.params.id,
-  (id) => {
-    titleError.value = false;
-    isEditing.value = id === "new";
-
-    if (id === "new") {
-      editorStore.initialize(emptyNote);
-      return;
-    }
-
-    const existingNote = notesStore.notes.find((item) => item.id === id);
-    if (!existingNote) {
-      editorStore.initialize(emptyNote);
-      return;
-    }
-
-    editorStore.initialize(existingNote);
-  },
+  (value) => initializeRouteDraft(value!),
   { immediate: true },
+);
+
+watch(
+  () => notesStore.notes,
+  () => initializeRouteDraft(route.params.id),
+);
+
+watch(
+  () => editorStore.restoredDraftId,
+  (id) => {
+    if (id !== null) {
+      initializeRouteDraft(route.params.id);
+    }
+  },
 );
 
 function save(): void {
@@ -60,11 +90,13 @@ function save(): void {
       title: draft.title,
       checklist: draft.checklist,
     });
+    editorStore.clearSavedDraft();
     void router.push(`/${createdNote.id}`);
     return;
   }
 
   notesStore.saveNote(draft);
+  editorStore.clearSavedDraft();
   editorStore.initialize(draft);
   titleError.value = false;
   isEditing.value = false;
@@ -72,6 +104,8 @@ function save(): void {
 
 function cancelEditing(): void {
   titleError.value = false;
+  editorStore.flushPendingChanges();
+  editorStore.clearSavedDraft();
 
   if (isNew.value) {
     editorStore.reset();
@@ -142,10 +176,6 @@ onKeyStroke(isHistoryShortcut, (event) => {
   } else {
     editorStore.undo();
   }
-});
-
-onBeforeUnmount(() => {
-  editorStore.reset();
 });
 </script>
 

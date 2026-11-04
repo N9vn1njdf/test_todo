@@ -37,6 +37,7 @@ function cloneNote(note: Note): Note {
 }
 
 export const useNoteEditorStore = defineStore("noteEditor", () => {
+  const noteDraftStore = useNoteDraftStore();
   const draft = ref<Note | null>(null);
   const history = ref<HistoryChange[]>([]);
   const historyIndex = ref(0);
@@ -69,6 +70,38 @@ export const useNoteEditorStore = defineStore("noteEditor", () => {
     history.value.splice(historyIndex.value);
     history.value.push(change);
     historyIndex.value = history.value.length;
+    if (draft.value) {
+      noteDraftStore.saveSnapshot(draft.value);
+    }
+  }
+
+  function hasSavedDraft(): boolean {
+    return noteDraftStore.hasSnapshot();
+  }
+
+  function restoreSavedDraft(): Note | null {
+    const savedDraft = noteDraftStore.restoreSnapshot();
+    if (!savedDraft) {
+      return null;
+    }
+
+    cancelPendingChanges();
+    draft.value = cloneNote(savedDraft);
+    history.value = [];
+    historyIndex.value = 0;
+    return cloneNote(savedDraft);
+  }
+
+  function consumeRestoredDraft(id: string): boolean {
+    if (!noteDraftStore.consumeRestoredDraft(id)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  function clearSavedDraft(): void {
+    noteDraftStore.clearSnapshot();
   }
 
   function flushPendingChanges(): void {
@@ -98,6 +131,7 @@ export const useNoteEditorStore = defineStore("noteEditor", () => {
 
   function initialize(note: Note): void {
     cancelPendingChanges();
+
     draft.value = cloneNote(note);
     history.value = [];
     historyIndex.value = 0;
@@ -345,10 +379,15 @@ export const useNoteEditorStore = defineStore("noteEditor", () => {
 
   return {
     draft,
+    restoredDraftId: noteDraftStore.restoredDraftId,
     canUndo,
     canRedo,
     initialize,
     reset,
+    hasSavedDraft,
+    restoreSavedDraft,
+    consumeRestoredDraft,
+    clearSavedDraft,
     clearHistory,
     flushPendingChanges,
     setNoteTitle,
