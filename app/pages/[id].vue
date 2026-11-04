@@ -188,6 +188,13 @@ onKeyStroke(isHistoryShortcut, (event) => {
     <div>Заметка не найдена</div>
   </div>
 
+  <div
+    v-if="!isEditing && !note.id"
+    class="h-full flex flex-col items-center justify-center"
+  >
+    <div>Загрузка..</div>
+  </div>
+
   <div v-else class="flex flex-col">
     <div class="flex justify-end gap-2 border-b border-secondary p-3">
       <template v-if="isEditing">

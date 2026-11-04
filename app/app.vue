@@ -33,7 +33,7 @@ function discardDraft(): void {
     >
       <div
         v-if="hasDraftPrompt"
-        class="flex items-center justify-between gap-3 border-b border-secondary bg-amber-50 px-4 py-3 text-sm"
+        class="flex items-center justify-between gap-3 border-b rounded-t-2xl border-secondary bg-amber-50 px-4 py-3 text-sm"
       >
         <span>Обнаружен черновик, хотите продолжить?</span>
         <div class="flex gap-2">
