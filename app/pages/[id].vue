@@ -125,6 +125,11 @@ function cancelEditing(): void {
 }
 
 async function confirmCancelEditing(): Promise<void> {
+  if (!editorStore.canUndo && !editorStore.canRedo) {
+    cancelEditing();
+    return;
+  }
+
   const confirmed = await modalStore.open<boolean>(ConfirmationModal, {
     text: isNew.value
       ? "Отменить создание заметки? Введённые данные будут потеряны."
