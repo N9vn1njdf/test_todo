@@ -28,6 +28,10 @@ const emptyNote: Note = {
 const note = computed(() => editorStore.draft ?? emptyNote);
 const titleError = ref(false);
 
+useHead({
+  title: computed(() => (isNew.value ? "Новая заметка" : note.value.title)),
+});
+
 function initializeRouteDraft(id: string | string[] | undefined): void {
   if (!id) return;
 
