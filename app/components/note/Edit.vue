@@ -80,13 +80,13 @@ async function confirmRemoveChecklistItem(id: string): Promise<void> {
         "
         @delete="confirmRemoveChecklistItem(item.id)"
       />
-      <button
-        type="button"
-        class="self-start text-sm text-primary"
+      <UiButton
+        label="Добавить пункт"
+        color="primary"
+        variant="soft"
+        class="self-start"
         @click="editorStore.addChecklistItem"
-      >
-        Добавить пункт
-      </button>
+      />
     </div>
   </div>
 </template>

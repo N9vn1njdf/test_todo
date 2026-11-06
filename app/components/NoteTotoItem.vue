@@ -33,12 +33,11 @@ function handleHistoryShortcut(event: KeyboardEvent): void {
       aria-label="Название пункта чеклиста"
       @keydown.stop="handleHistoryShortcut"
     />
-    <button
-      type="button"
-      class="text-red-500 hover:text-red-400 cursor-pointer text-sm"
+    <UiButton
+      label="Удалить"
+      color="error"
+      variant="ghost"
       @click="emit('delete')"
-    >
-      Удалить
-    </button>
+    />
   </div>
 </template>
