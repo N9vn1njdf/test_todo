@@ -41,6 +41,7 @@ function cloneNote(note: Note): Note {
 export const useNoteEditorStore = defineStore("noteEditor", () => {
   const noteDraftStore = useNoteDraftStore();
   const draft = ref<Note | null>(null);
+  const restoredDraftId = computed(() => noteDraftStore.restoredDraftId);
   const history = ref<HistoryChange[]>([]);
   const historyIndex = ref(0);
   const pendingTitleCount = ref(0);
@@ -384,7 +385,7 @@ export const useNoteEditorStore = defineStore("noteEditor", () => {
 
   return {
     draft,
-    restoredDraftId: noteDraftStore.restoredDraftId,
+    restoredDraftId,
     canUndo,
     canRedo,
     initialize,
