@@ -11,6 +11,7 @@
     "format": "npx prettier --write ."
   },
   "dependencies": {
+    "@lucide/vue": "^1.69.0",
     "@paralleldrive/cuid2": "^3.3.0",
     "@pinia/nuxt": "^1.0.3",
     "@tailwindcss/vite": "^4.3.3",

@@ -24,11 +24,11 @@ function handleHistoryShortcut(event: KeyboardEvent): void {
 
 <template>
   <div class="flex gap-2 items-center p-1 hover:bg-secondary/45">
-    <UiCheckbox v-model="completed" class="w-5 aspect-square" />
+    <UiCheckbox v-model="completed" size="lg" />
     <input
       v-model="title"
       type="text"
-      class="flex-1 text-sm focus:outline-none"
+      class="flex-1 focus:outline-none"
       :class="{ 'line-through text-gray-400': completed }"
       aria-label="Название пункта чеклиста"
       @keydown.stop="handleHistoryShortcut"

@@ -199,18 +199,22 @@ onKeyStroke(isHistoryShortcut, (event) => {
     <div class="flex justify-end gap-2 border-b border-secondary p-3">
       <template v-if="isEditing">
         <div class="flex gap-2 flex-1">
-          <UiButton
-            label="Отменить"
-            color="secondary"
-            :disabled="!editorStore.canUndo"
-            @click="editorStore.undo"
-          />
-          <UiButton
-            label="Повторить"
-            color="secondary"
-            :disabled="!editorStore.canRedo"
-            @click="editorStore.redo"
-          />
+          <UiTooltip text="Отменить">
+            <UiButton
+              icon="CornerUpLeft"
+              color="secondary"
+              :disabled="!editorStore.canUndo"
+              @click="editorStore.undo"
+            />
+          </UiTooltip>
+          <UiTooltip text="Повторить">
+            <UiButton
+              icon="CornerUpRight"
+              color="secondary"
+              :disabled="!editorStore.canRedo"
+              @click="editorStore.redo"
+            />
+          </UiTooltip>
         </div>
 
         <UiButton

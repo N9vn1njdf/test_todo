@@ -5,7 +5,7 @@ const notesStore = useNotesStore();
 <template>
   <div class="flex h-full">
     <div
-      class="flex h-full w-70 flex-col overflow-scroll border-r border-secondary"
+      class="flex h-full w-75 flex-col overflow-scroll border-r border-secondary"
     >
       <div class="border-b border-secondary w-full p-3">
         <NuxtLink to="/new">

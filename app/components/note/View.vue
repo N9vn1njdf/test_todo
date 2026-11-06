@@ -19,11 +19,7 @@ defineProps<{
         :key="item.id"
         class="flex items-center gap-2 p-1"
       >
-        <UiCheckbox
-          :model-value="item.completed"
-          disabled
-          class="w-5 aspect-square"
-        />
+        <UiCheckbox :model-value="item.completed" size="lg" disabled />
         <span :class="{ 'line-through text-gray-400': item.completed }">
           {{ item.title }}
         </span>
