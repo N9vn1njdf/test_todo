@@ -21,6 +21,8 @@ type HistoryChange =
   | { type: "add-checklist-item"; item: ChecklistItem; index: number }
   | { type: "remove-checklist-item"; item: ChecklistItem; index: number };
 
+const MAX_HISTORY_LENGTH = 50;
+
 interface PendingTitleChange {
   before: string | null;
   sequence: number;
@@ -69,6 +71,9 @@ export const useNoteEditorStore = defineStore("noteEditor", () => {
   function recordChange(change: HistoryChange): void {
     history.value.splice(historyIndex.value);
     history.value.push(change);
+    if (history.value.length > MAX_HISTORY_LENGTH) {
+      history.value.shift();
+    }
     historyIndex.value = history.value.length;
     if (draft.value) {
       noteDraftStore.saveSnapshot(draft.value);
