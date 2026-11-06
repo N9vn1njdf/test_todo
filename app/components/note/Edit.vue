@@ -43,13 +43,7 @@ async function confirmRemoveChecklistItem(id: string): Promise<void> {
     return;
   }
 
-  const confirmed = await modalStore.open<boolean>(ConfirmationModal, {
-    text: `Удалить пункт «${item.title || "Без названия"}»?`,
-  });
-
-  if (confirmed) {
-    editorStore.removeChecklistItem(id);
-  }
+  editorStore.removeChecklistItem(id);
 }
 </script>
 
