@@ -201,7 +201,7 @@ onKeyStroke(isHistoryShortcut, (event) => {
   </div>
 
   <div v-else class="flex flex-col">
-    <div class="flex justify-end gap-2 border-b border-secondary p-3">
+    <div class="flex justify-between gap-2 border-b border-secondary p-3">
       <template v-if="isEditing">
         <div class="flex gap-2 flex-1">
           <UiTooltip text="Отменить">
@@ -223,7 +223,7 @@ onKeyStroke(isHistoryShortcut, (event) => {
         </div>
 
         <UiButton
-          :label="isNew ? 'Отменить создание' : 'Отменить редактирование'"
+          label="Отменить"
           color="secondary"
           @click="confirmCancelEditing"
         />
@@ -233,18 +233,26 @@ onKeyStroke(isHistoryShortcut, (event) => {
           @click="save"
         />
       </template>
-      <UiButton
-        v-else
-        label="Редактировать"
-        color="primary"
-        @click="isEditing = true"
-      />
-      <UiButton
-        v-if="!isNew"
-        label="Удалить"
-        color="error"
-        @click="confirmRemove"
-      />
+      <template v-else>
+        <div>
+          <NuxtLink to="/" class="md:hidden">
+            <UiButton icon="ArrowLeft" color="secondary" />
+          </NuxtLink>
+        </div>
+        <div class="flex gap-3">
+          <UiButton
+            label="Редактировать"
+            color="primary"
+            @click="isEditing = true"
+          />
+          <UiButton
+            v-if="!isNew"
+            label="Удалить"
+            color="error"
+            @click="confirmRemove"
+          />
+        </div>
+      </template>
     </div>
 
     <div class="p-5">

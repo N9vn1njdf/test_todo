@@ -27,13 +27,15 @@ function discardDraft(): void {
 </script>
 
 <template>
-  <main class="h-screen flex items-center justify-center bg-gray-100">
+  <main
+    class="flex h-[100dvh] items-center justify-center bg-white md:h-screen md:bg-gray-100"
+  >
     <div
-      class="w-full max-w-5xl h-[calc(100vh-100px)] bg-white border border-secondary rounded-2xl"
+      class="flex h-full min-h-0 w-full max-w-5xl flex-col overflow-hidden bg-white md:h-[calc(100vh-100px)] md:rounded-2xl md:border md:border-secondary"
     >
       <div
         v-if="hasDraftPrompt"
-        class="flex items-center justify-between gap-3 border-b rounded-t-2xl border-secondary bg-amber-50 px-4 py-3 text-sm"
+        class="flex items-center justify-between gap-3 border-b border-secondary bg-amber-50 px-4 py-3 text-sm md:rounded-t-2xl"
       >
         <span>Обнаружен черновик, хотите продолжить?</span>
         <div class="flex gap-2">
@@ -41,9 +43,11 @@ function discardDraft(): void {
           <UiButton label="Нет" color="secondary" @click="discardDraft" />
         </div>
       </div>
-      <NuxtLayout>
-        <NuxtPage />
-      </NuxtLayout>
+      <div class="min-h-0 flex-1">
+        <NuxtLayout>
+          <NuxtPage />
+        </NuxtLayout>
+      </div>
     </div>
     <ModalHost />
   </main>
