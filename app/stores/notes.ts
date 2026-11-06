@@ -3,6 +3,7 @@ import { defineStore } from "pinia";
 import type { Note } from "~/models/note";
 
 const NOTES_STORAGE_KEY = "notes";
+const NOTES_INITIALIZED_STORAGE_KEY = "notes-initialized";
 
 function normalizeNote(
   note: Pick<Note, "title" | "checklist">,
@@ -22,7 +23,7 @@ function cloneNote(note: Note): Note {
   };
 }
 
-function createMockNotes(): Note[] {
+function createInitialNotes(): Note[] {
   return [
     {
       id: "demo-weekly-plans",
@@ -82,7 +83,7 @@ function cloneNotes(notes: Note[]): Note[] {
 
 export const useNotesStore = defineStore("notes", {
   state: () => ({
-    notes: createMockNotes(),
+    notes: [] as Note[],
     initialized: false,
   }),
   actions: {
@@ -96,20 +97,42 @@ export const useNotesStore = defineStore("notes", {
         return;
       }
 
+      let wasInitialized = false;
+      let storedNotes: string | null = null;
+
       try {
-        const storedNotes = localStorage.getItem(NOTES_STORAGE_KEY);
-        if (storedNotes) {
+        wasInitialized =
+          localStorage.getItem(NOTES_INITIALIZED_STORAGE_KEY) === "true";
+        storedNotes = localStorage.getItem(NOTES_STORAGE_KEY);
+      } catch {
+        // Storage may be unavailable; initialize with usable in-memory notes.
+        this.notes = createInitialNotes();
+        return;
+      }
+
+      if (storedNotes !== null) {
+        try {
           const parsed: unknown = JSON.parse(storedNotes);
           if (Array.isArray(parsed) && parsed.every(isNote)) {
             this.notes = cloneNotes(parsed);
-            return;
+          } else if (!wasInitialized) {
+            this.notes = createInitialNotes();
+          }
+        } catch {
+          if (!wasInitialized) {
+            this.notes = createInitialNotes();
           }
         }
-      } catch {
-        // Fall back to the deterministic example notes if storage is unavailable.
+      } else if (!wasInitialized) {
+        this.notes = createInitialNotes();
       }
 
       this.persistNotes();
+      try {
+        localStorage.setItem(NOTES_INITIALIZED_STORAGE_KEY, "true");
+      } catch {
+        // Storage may be unavailable; notes remain usable in memory.
+      }
     },
     persistNotes(): void {
       if (!import.meta.client) {
