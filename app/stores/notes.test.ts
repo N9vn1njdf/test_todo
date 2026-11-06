@@ -2,23 +2,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import { CURRENT_NOTE_SCHEMA_VERSION, type Note } from "~/models/note";
 import { useNotesStore } from "~/stores/notes";
+import {
+  createLocalStorageMock,
+  type LocalStorageMock,
+} from "../../tests/utils/localStorageMock";
 
 const NOTES_STORAGE_KEY = "notes";
 const NOTES_INITIALIZED_STORAGE_KEY = "notes-initialized";
-let localStorageMock = createLocalStorageMock();
-
-function createLocalStorageMock() {
-  const storage = new Map<string, string>();
-
-  return {
-    getItem: vi.fn((key: string) => storage.get(key) ?? null),
-    setItem: vi.fn((key: string, value: string) => storage.set(key, value)),
-  };
-}
-
-function getLocalStorageMock() {
-  return localStorageMock;
-}
+let localStorageMock: LocalStorageMock;
 
 function createNote(id = "note-1"): Note {
   return {
@@ -52,7 +43,7 @@ describe("notes store", () => {
       "Идеи для проекта",
     ]);
 
-    const storage = getLocalStorageMock();
+    const storage = localStorageMock;
     expect(JSON.parse(storage.getItem(NOTES_STORAGE_KEY)!)).toEqual(
       store.notes,
     );
@@ -60,7 +51,7 @@ describe("notes store", () => {
   });
 
   it("restores valid notes from localStorage", () => {
-    const storage = getLocalStorageMock();
+    const storage = localStorageMock;
     const savedNote = createNote();
     storage.setItem(NOTES_STORAGE_KEY, JSON.stringify([savedNote]));
     storage.setItem(NOTES_INITIALIZED_STORAGE_KEY, "true");
@@ -74,7 +65,7 @@ describe("notes store", () => {
   });
 
   it("uses initial notes when saved data is invalid on first initialization", () => {
-    getLocalStorageMock().setItem(NOTES_STORAGE_KEY, "not valid JSON");
+    localStorageMock.setItem(NOTES_STORAGE_KEY, "not valid JSON");
 
     const store = useNotesStore();
     store.initializeFromStorage();
@@ -86,7 +77,7 @@ describe("notes store", () => {
   it("does not initialize or read storage more than once", () => {
     const store = useNotesStore();
     store.initializeFromStorage();
-    const storage = getLocalStorageMock();
+    const storage = localStorageMock;
     const getItemCalls = storage.getItem.mock.calls.length;
 
     store.notes = [];
@@ -117,9 +108,9 @@ describe("notes store", () => {
     });
     expect(created.checklist[0]?.id).not.toBe("input-1");
     expect(store.notes).toEqual([created]);
-    expect(
-      JSON.parse(getLocalStorageMock().getItem(NOTES_STORAGE_KEY)!),
-    ).toEqual([created]);
+    expect(JSON.parse(localStorageMock.getItem(NOTES_STORAGE_KEY)!)).toEqual([
+      created,
+    ]);
   });
 
   it("saves an existing note after normalizing its title and checklist", () => {
@@ -143,9 +134,9 @@ describe("notes store", () => {
         { id: "item-1", title: "Обновлённый пункт", completed: true },
       ],
     });
-    expect(
-      JSON.parse(getLocalStorageMock().getItem(NOTES_STORAGE_KEY)!),
-    ).toEqual(store.notes);
+    expect(JSON.parse(localStorageMock.getItem(NOTES_STORAGE_KEY)!)).toEqual(
+      store.notes,
+    );
   });
 
   it("does not persist when saving a note that does not exist", () => {
@@ -154,7 +145,7 @@ describe("notes store", () => {
     store.saveNote(createNote("missing-note"));
 
     expect(store.notes).toEqual([]);
-    expect(getLocalStorageMock().setItem).not.toHaveBeenCalled();
+    expect(localStorageMock.setItem).not.toHaveBeenCalled();
   });
 
   it("deletes a note and persists the remaining notes", () => {
@@ -164,9 +155,9 @@ describe("notes store", () => {
     store.deleteNote("first");
 
     expect(store.notes.map(({ id }) => id)).toEqual(["second"]);
-    expect(
-      JSON.parse(getLocalStorageMock().getItem(NOTES_STORAGE_KEY)!),
-    ).toEqual(store.notes);
+    expect(JSON.parse(localStorageMock.getItem(NOTES_STORAGE_KEY)!)).toEqual(
+      store.notes,
+    );
   });
 
   it("keeps initial notes usable when localStorage is unavailable", () => {

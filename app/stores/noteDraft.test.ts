@@ -2,23 +2,19 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import { CURRENT_NOTE_SCHEMA_VERSION } from "~/models/note";
 import { useNoteDraftStore } from "~/stores/noteDraft";
+import {
+  createLocalStorageMock,
+  type LocalStorageMock,
+} from "../../tests/utils/localStorageMock";
 
 const DRAFT_STORAGE_KEY = "note-editor-draft";
-
-function createLocalStorageMock() {
-  const storage = new Map<string, string>();
-
-  return {
-    getItem: vi.fn((key: string) => storage.get(key) ?? null),
-    setItem: vi.fn((key: string, value: string) => storage.set(key, value)),
-    removeItem: vi.fn((key: string) => storage.delete(key)),
-  };
-}
+let localStorageMock: LocalStorageMock;
 
 describe("note draft schema version", () => {
   beforeEach(() => {
     setActivePinia(createPinia());
-    vi.stubGlobal("localStorage", createLocalStorageMock());
+    localStorageMock = createLocalStorageMock();
+    vi.stubGlobal("localStorage", localStorageMock);
   });
 
   afterEach(() => {
@@ -26,7 +22,7 @@ describe("note draft schema version", () => {
   });
 
   it("silently removes a draft saved with another schema version", () => {
-    const storage = localStorage as ReturnType<typeof createLocalStorageMock>;
+    const storage = localStorageMock;
     storage.setItem(
       DRAFT_STORAGE_KEY,
       JSON.stringify({
@@ -45,7 +41,7 @@ describe("note draft schema version", () => {
   });
 
   it("keeps a draft saved with the current schema version", () => {
-    const storage = localStorage as ReturnType<typeof createLocalStorageMock>;
+    const storage = localStorageMock;
     const draft = {
       id: "note-1",
       schema_version: CURRENT_NOTE_SCHEMA_VERSION,
