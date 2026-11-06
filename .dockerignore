@@ -1,0 +1,9 @@
+.git
+.nuxt
+.output
+.data
+node_modules
+coverage
+.env
+.env.*
+config/config.json
