@@ -3,7 +3,7 @@ import { onKeyStroke } from "@vueuse/core";
 import NoteEdit from "~/components/note/Edit.vue";
 import NoteView from "~/components/note/View.vue";
 import ConfirmationModal from "~/modals/ConfirmationModal.vue";
-import type { Note } from "~/models/note";
+import { CURRENT_NOTE_SCHEMA_VERSION, type Note } from "~/models/note";
 
 const route = useRoute();
 const router = useRouter();
@@ -21,6 +21,7 @@ const noteNotFound = computed(
 );
 const emptyNote: Note = {
   id: "",
+  schema_version: CURRENT_NOTE_SCHEMA_VERSION,
   title: "",
   checklist: [],
 };

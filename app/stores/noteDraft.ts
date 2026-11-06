@@ -1,6 +1,10 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import type { ChecklistItem, Note } from "~/models/note";
+import {
+  CURRENT_NOTE_SCHEMA_VERSION,
+  type ChecklistItem,
+  type Note,
+} from "~/models/note";
 
 const DRAFT_STORAGE_KEY = "note-editor-draft";
 
@@ -32,6 +36,7 @@ function isNote(value: unknown): value is Note {
   const note = value as Partial<Note>;
   return (
     typeof note.id === "string" &&
+    Number.isInteger(note.schema_version) &&
     typeof note.title === "string" &&
     Array.isArray(note.checklist) &&
     note.checklist.every(isChecklistItem)
@@ -53,7 +58,10 @@ export const useNoteDraftStore = defineStore("noteDraft", () => {
       }
 
       const parsed: unknown = JSON.parse(value);
-      if (isNote(parsed)) {
+      if (
+        isNote(parsed) &&
+        parsed.schema_version === CURRENT_NOTE_SCHEMA_VERSION
+      ) {
         return cloneNote(parsed);
       }
 

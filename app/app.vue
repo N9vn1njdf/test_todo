@@ -28,7 +28,7 @@ function discardDraft(): void {
 
 <template>
   <main
-    class="flex h-[100dvh] items-center justify-center bg-white md:h-screen md:bg-gray-100"
+    class="flex h-dvh items-center justify-center bg-white md:h-screen md:bg-gray-100"
   >
     <div
       class="flex h-full min-h-0 w-full max-w-5xl flex-col overflow-hidden bg-white md:h-[calc(100vh-100px)] md:rounded-2xl md:border md:border-secondary"

@@ -1,6 +1,6 @@
 import { createId } from "@paralleldrive/cuid2";
 import { defineStore } from "pinia";
-import type { Note } from "~/models/note";
+import { CURRENT_NOTE_SCHEMA_VERSION, type Note } from "~/models/note";
 
 const NOTES_STORAGE_KEY = "notes";
 const NOTES_INITIALIZED_STORAGE_KEY = "notes-initialized";
@@ -27,6 +27,7 @@ function createInitialNotes(): Note[] {
   return [
     {
       id: "demo-weekly-plans",
+      schema_version: CURRENT_NOTE_SCHEMA_VERSION,
       title: "Планы на неделю",
       checklist: [
         { id: "demo-buy-groceries", title: "Купить продукты", completed: true },
@@ -39,6 +40,7 @@ function createInitialNotes(): Note[] {
     },
     {
       id: "demo-project-ideas",
+      schema_version: CURRENT_NOTE_SCHEMA_VERSION,
       title: "Идеи для проекта",
       checklist: [
         {
@@ -64,6 +66,7 @@ function isNote(value: unknown): value is Note {
   const note = value as Partial<Note>;
   return (
     typeof note.id === "string" &&
+    Number.isInteger(note.schema_version) &&
     typeof note.title === "string" &&
     Array.isArray(note.checklist) &&
     note.checklist.every(
@@ -145,11 +148,12 @@ export const useNotesStore = defineStore("notes", {
         // Storage may be unavailable; keep notes usable in memory.
       }
     },
-    createNote(note: Omit<Note, "id">): Note {
+    createNote(note: Omit<Note, "id" | "schema_version">): Note {
       const normalizedNote = normalizeNote(note);
       const newNote: Note = {
         ...normalizedNote,
         id: createId(),
+        schema_version: CURRENT_NOTE_SCHEMA_VERSION,
         checklist: normalizedNote.checklist.map((item) => ({
           ...item,
           id: createId(),
